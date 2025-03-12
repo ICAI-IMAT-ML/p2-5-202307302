@@ -1,3 +1,4 @@
+import numpy as np
 class LogisticRegressor:
     def __init__(self):
         """
@@ -72,22 +73,26 @@ class LogisticRegressor:
         - self.weights: The weights of the model after training.
         - self.bias: The bias of the model after training.
         """
-        # TODO: Obtain m (number of examples) and n (number of features)
-        m = None
-        n = None
+        m = X.shape[0]
+        n = X.shape[1]
 
-        # TODO: Initialize all parameters to 0
-        self.weights = None
+        self.weights = 0
         self.bias = 0
 
-        # TODO: Complete the gradient descent code
         # Tip: You can use the code you had in the previous practice
-        # Execute the iterative gradient descent
-        for i in range(None):  # Fill the None here
+        if np.ndim(X) == 1:
+            X = X.reshape(-1, 1)    # Lo convierte en columna (la transpuesta de un 1D es un 1d itambién fila)
 
+        X_with_bias = np.insert(
+            X, 0, 1, axis=1
+        )  # Adding a column of ones for intercept
+
+        # Execute the iterative gradient descent
+        for i in range(num_iterations):  # Fill the None here
             # For these two next lines, you will need to implement the respective functions
             # Forward propagation
             y_hat = self.predict_proba(X)
+            error = y - y_hat
             # Compute loss
             loss = self.log_likelihood(y, y_hat)
 
@@ -95,10 +100,10 @@ class LogisticRegressor:
             if i % print_every == 0 and verbose:
                 print(f"Iteration {i}: Loss {loss}")
 
-            # TODO: Implement the gradient values
+            error = y 
             # CAREFUL! You need to calculate the gradient of the loss function (*negative log-likelihood*)
-            dw = None  # Derivative w.r.t. the coefficients
-            db = None  # Derivative w.r.t. the intercept
+            dw = (2/m) * np.sum(error)  # Derivative w.r.t. the coefficients
+            db = (2/m) * (X.T @ error)  # Derivative w.r.t. the intercept
 
             # Regularization:
             # Apply regularization if it is selected.
@@ -128,8 +133,8 @@ class LogisticRegressor:
         - A numpy array of shape (m, 1) containing the probability of the positive class for each sample.
         """
 
-        # TODO: z is the value of the logits. Write it here (use self.weights and self.bias):
-        z = None
+        # z is the value of the logits. Write it here (use self.weights and self.bias):
+        z = self.bias + X* self.weights
 
         # Return the associated probabilities via the sigmoid trasnformation (symmetric choice)
         return self.sigmoid(z)
@@ -174,10 +179,7 @@ class LogisticRegressor:
         - np.ndarray: The adjusted gradient of the loss function with respect to the weights,
                       after applying L1 regularization.
         """
-
-        # TODO:
-        # ADD THE LASSO CONTRIBUTION TO THE DERIVATIVE OF THE OBJECTIVE FUNCTION
-        lasso_gradient = None
+        lasso_gradient = (C / m) * np.sign(dw)
         return dw + lasso_gradient
 
     def ridge_regularization(self, dw, m, C):
@@ -200,10 +202,7 @@ class LogisticRegressor:
         - np.ndarray: The adjusted gradient of the loss function with respect to the weights,
                         after applying L2 regularization.
         """
-
-        # TODO:
-        # ADD THE RIDGE CONTRIBUTION TO THE DERIVATIVE OF THE OBJECTIVE FUNCTION
-        ridge_gradient = None
+        ridge_gradient = (C / m) * 2*dw
         return dw + ridge_gradient
 
     def elasticnet_regularization(self, dw, m, C, l1_ratio):
@@ -262,9 +261,9 @@ class LogisticRegressor:
         - The computed loss value as a scalar.
         """
 
-        # TODO: Implement the loss function (log-likelihood)
+        # Implement the loss function (log-likelihood)
         m = y.shape[0]  # Number of examples
-        loss = None
+        loss = -1/m * np.sum(y* np.log(y_hat) + (1-y) * np.log(1 - y_hat))
         return loss
 
     @staticmethod
@@ -281,8 +280,5 @@ class LogisticRegressor:
         Returns:
         - The sigmoid of z.
         """
-
-        # TODO: Implement the sigmoid function to convert the logits into probabilities
-        sigmoid_value = None
-
+        sigmoid_value = 1 / (1 + np.exp(-z))
         return sigmoid_value
